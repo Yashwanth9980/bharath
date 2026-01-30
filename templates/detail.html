@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ item.name }} - Bharat Heritage Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Georgia", serif;
+    background: url("/static/images/picture3.jpg") center/cover fixed no-repeat;
+    color: #2b1d0e;
+    padding-bottom: 140px;
+}
+
+/* HEADER */
+.header-panel {
+    width: 80%;
+    margin: 30px auto 20px;
+    background: rgba(11, 45, 77, 0.92);
+    border: 3px solid #c9a227;
+    border-radius: 22px;
+    padding: 26px;
+    text-align: center;
+    box-shadow: 0 12px 45px rgba(0,0,0,0.35);
+}
+
+.header-panel h1 {
+    margin: 0;
+    font-size: 40px;
+    color: #f5d36a;
+}
+
+.header-panel p {
+    margin-top: 8px;
+    font-size: 18px;
+    color: #f3e3b0;
+}
+
+/* IMAGE */
+.section-box {
+    width: 92%;
+    margin: 20px auto;
+}
+
+.carousel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 420px;
+}
+
+.carousel img {
+    max-height: 460px;
+    max-width: 100%;
+    border-radius: 18px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.65);
+}
+
+/* MAIN */
+.main {
+    width: 92%;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 55% 45%;
+    gap: 20px;
+}
+
+/* TITLES */
+.section-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #0b2d4d;
+    border-left: 6px solid #c9a227;
+    padding-left: 12px;
+}
+
+/* STORY */
+.story {
+    background: rgba(255,255,255,0.96);
+    border: 3px solid #c9a227;
+    border-radius: 16px;
+    padding: 24px;
+    height: 520px;
+    overflow-y: auto;
+    font-size: 18px;
+    line-height: 1.7;
+}
+
+/* SIDE BOX */
+.side-box {
+    background: rgba(255,255,255,0.96);
+    border: 3px solid #c9a227;
+    border-radius: 16px;
+    padding: 22px;
+    height: 520px;
+    overflow-y: auto;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+}
+
+/* CONTROL BAR */
+.control-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #0b2d4d, #143a63);
+    border: 3px solid #c9a227;
+    padding: 14px 20px;
+    border-radius: 22px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    z-index: 9999;
+}
+
+.control-bar select {
+    background: #0b2d4d;
+    color: #f5d36a;
+    border: 2px solid #c9a227;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.control-bar button {
+    background: linear-gradient(135deg, #c9a227, #f5d36a);
+    color: #0b2d4d;
+    font-weight: bold;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header-panel">
+    <h1>{{ item.name }}</h1>
+    <p>
+        {% if category == "places" %}Historic Place of India{% endif %}
+        {% if category == "arts" %}Traditional Art of India{% endif %}
+        {% if category == "festivals" %}Grand Festival of India{% endif %}
+    </p>
+</div>
+
+<div class="section-box">
+    <div class="carousel">
+        <img id="carouselImage" src="" alt="Heritage image of {{ item.name }}">
+    </div>
+</div>
+
+<div class="main">
+    <div>
+        <div class="section-title">📜 Historical Narrative</div>
+        <div class="story" id="storyBox">Click Generate to load story...</div>
+    </div>
+
+    <div>
+        {% if category == "places" %}
+        <div class="section-title">🗺️ Location Map</div>
+        <div class="side-box">
+            <div class="map" id="map"
+                 data-lat="{{ item.lat }}"
+                 data-lng="{{ item.lng }}">
+            </div>
+        </div>
+
+        {% elif category == "arts" %}
+        <div class="section-title">🎭 Cultural Origin & Spread</div>
+        <div class="side-box">
+            <p><strong>Art Form:</strong> {{ item.name }}</p>
+            <p><strong>Origin State:</strong>
+                {% if item.name == "Odissi Dance" %}Odisha
+                {% elif item.name == "Kathakali" %}Kerala
+                {% elif item.name == "Bharatanatyam" %}Tamil Nadu
+                {% elif item.name == "Yakshagana" %}Karnataka
+                {% elif item.name == "Kathak" %}Uttar Pradesh
+                {% elif item.name == "Madhubani Painting" %}Bihar
+                {% elif item.name == "Chhau Dance" %}Odisha, Jharkhand & West Bengal
+                {% elif item.name == "Kalaripayattu" %}Kerala
+                {% else %}India{% endif %}
+            </p>
+            <p><strong>Cultural Region:</strong> Indian Subcontinent</p>
+            <p><strong>Tradition Type:</strong> Classical / Folk Heritage</p>
+            <p><strong>Historical Roots:</strong> Temple rituals, royal courts, and oral traditions</p>
+            <p><strong>Practice:</strong> Preserved through generations of disciplined training</p>
+            <p>This art form represents regional identity, philosophy, and aesthetic expression.</p>
+        </div>
+
+        {% else %}
+        <div class="section-title">🎉 Celebration Across India</div>
+        <div class="side-box">
+            <p><strong>Festival:</strong> {{ item.name }}</p>
+            <p><strong>Observed By:</strong> Communities across India</p>
+            <p><strong>Season:</strong> Based on traditional lunar or solar calendar</p>
+            <p><strong>Cultural Significance:</strong> Devotion, harvest, renewal, and unity</p>
+            <p><strong>Community Role:</strong> Collective rituals, celebrations, and harmony</p>
+            <p>This festival strengthens cultural bonds and preserves shared heritage.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="control-bar">
+    <select id="language" aria-label="Language selection">
+        <option value="English">English</option>
+        <option value="Hindi">हिन्दी</option>
+        <option value="Kannada">ಕನ್ನಡ</option>
+        <option value="Telugu">తెలుగు</option>
+        <option value="Marathi">मराठी</option>
+    </select>
+    <button onclick="generateStory()">Generate</button>
+    <button onclick="speak()">Listen</button>
+    <button onclick="stopSpeech()">Stop</button>
+</div>
+
+<script>
+window.onbeforeunload = () => speechSynthesis.cancel();
+
+/* LOAD VOICES SAFELY */
+let voices = [];
+function loadVoices() {
+    voices = speechSynthesis.getVoices();
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+/* SAFE MAP INIT */
+function initMapIfExists() {
+    const mapEl = document.getElementById("map");
+    if (!mapEl) return;
+
+    const lat = parseFloat(mapEl.dataset.lat);
+    const lng = parseFloat(mapEl.dataset.lng);
+
+    const map = new google.maps.Map(mapEl, {
+        center: { lat: lat, lng: lng },
+        zoom: 7
+    });
+
+    new google.maps.Marker({ position: { lat: lat, lng: lng }, map: map });
+}
+window.onload = initMapIfExists;
+
+/* STORY */
+function generateStory() {
+    stopSpeech();
+    const box = document.getElementById("storyBox");
+    box.innerText = "Generating story...";
+
+    fetch("/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name: "{{ item.name }}",
+            category: "{{ category }}",
+            language: document.getElementById("language").value
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        box.innerText = d.text;
+        box.scrollTop = 0;
+    });
+}
+
+/* ✅ FIXED TEXT TO SPEECH */
+function speak() {
+    stopSpeech();
+    const text = document.getElementById("storyBox").innerText.trim();
+    if (!text) return;
+
+    const lang = document.getElementById("language").value;
+    const u = new SpeechSynthesisUtterance(text);
+
+    if (lang === "Hindi") u.lang = "hi-IN";
+    else if (lang === "Kannada") u.lang = "kn-IN";
+    else if (lang === "Telugu") u.lang = "te-IN";
+    else if (lang === "Marathi") u.lang = "mr-IN";
+    else u.lang = "en-IN";
+
+    let selectedVoice = null;
+
+    if (lang === "English") {
+        selectedVoice = voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"));
+    } else if (lang === "Hindi") {
+        selectedVoice = voices.find(v => v.lang === "hi-IN");
+    } else {
+        selectedVoice = voices.find(v => v.lang.startsWith(u.lang.split("-")[0]));
+    }
+
+    if (selectedVoice) u.voice = selectedVoice;
+
+    u.rate = 0.95;
+    u.pitch = 1.15;
+
+    speechSynthesis.speak(u);
+}
+
+function stopSpeech(){ speechSynthesis.cancel(); }
+
+/* IMAGE */
+fetch("/wiki_images?title={{ item.name }}")
+.then(r => r.json())
+.then(arr => {
+    if (arr.length) document.getElementById("carouselImage").src = arr[0];
+});
+</script>
+
+</body>
+</html>
