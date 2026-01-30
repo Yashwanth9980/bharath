@@ -231,13 +231,19 @@ body {
 </div>
 
 <script>
-window.onbeforeunload = () => speechSynthesis.cancel();
+window.onbeforeunload = () => { if (window.speechSynthesis) window.speechSynthesis.cancel(); };
 
-/* LOAD VOICES SAFELY */
+/* LOAD VOICES SAFELY WITH RETRY */
 let voices = [];
 function loadVoices() {
-    voices = speechSynthesis.getVoices();
+    try {
+        voices = window.speechSynthesis.getVoices() || [];
+    } catch (e) {
+        voices = [];
+        console.warn('Failed to get voices immediately', e);
+    }
 }
+
 speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 
@@ -275,52 +281,71 @@ function generateStory() {
     })
     .then(r => r.json())
     .then(d => {
-        box.innerText = d.text;
+        box.innerText = d.text || '';
         box.scrollTop = 0;
+    })
+    .catch(err => {
+        console.error('Error generating story', err);
+        box.innerText = 'Failed to generate story.';
     });
 }
 
-/* ✅ FIXED TEXT TO SPEECH */
+/* IMPROVED TEXT TO SPEECH */
 function speak() {
     stopSpeech();
     const text = document.getElementById("storyBox").innerText.trim();
     if (!text) return;
 
+    if (!('speechSynthesis' in window)) {
+        alert('Speech synthesis not supported in this browser.');
+        return;
+    }
+
     const lang = document.getElementById("language").value;
     const u = new SpeechSynthesisUtterance(text);
 
-    if (lang === "Hindi") u.lang = "hi-IN";
-    else if (lang === "Kannada") u.lang = "kn-IN";
-    else if (lang === "Telugu") u.lang = "te-IN";
-    else if (lang === "Marathi") u.lang = "mr-IN";
-    else u.lang = "en-IN";
+    const langMap = { "English": "en-IN", "Hindi": "hi-IN", "Kannada": "kn-IN", "Telugu": "te-IN", "Marathi": "mr-IN" };
+    u.lang = langMap[lang] || 'en-IN';
 
-    let selectedVoice = null;
+    // Wait for voices to load (retry a few times)
+    const ensureVoices = (attempt = 0) => {
+        if (voices.length || attempt > 6) return Promise.resolve();
+        return new Promise(resolve => setTimeout(() => resolve(ensureVoices(attempt + 1)), 120));
+    };
 
-    if (lang === "English") {
-        selectedVoice = voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"));
-    } else if (lang === "Hindi") {
-        selectedVoice = voices.find(v => v.lang === "hi-IN");
-    } else {
-        selectedVoice = voices.find(v => v.lang.startsWith(u.lang.split("-")[0]));
-    }
+    ensureVoices().then(() => {
+        let selectedVoice = null;
 
-    if (selectedVoice) u.voice = selectedVoice;
+        if (lang === "English") {
+            selectedVoice = voices.find(v => v.lang && v.lang.startsWith('en')) || voices.find(v => v.name && v.name.toLowerCase().includes('english'));
+        } else {
+            const code = u.lang.split('-')[0];
+            selectedVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(code));
+        }
 
-    u.rate = 0.95;
-    u.pitch = 1.15;
+        if (selectedVoice) u.voice = selectedVoice;
 
-    speechSynthesis.speak(u);
+        u.rate = 0.95;
+        u.pitch = 1.15;
+
+        try {
+            window.speechSynthesis.speak(u);
+        } catch (err) {
+            console.error('Speech synthesis error:', err);
+            alert('Unable to play speech on this device.');
+        }
+    });
 }
 
-function stopSpeech(){ speechSynthesis.cancel(); }
+function stopSpeech(){ if (window.speechSynthesis) window.speechSynthesis.cancel(); }
 
 /* IMAGE */
 fetch("/wiki_images?title={{ item.name }}")
 .then(r => r.json())
 .then(arr => {
     if (arr.length) document.getElementById("carouselImage").src = arr[0];
-});
+})
+.catch(e => console.warn('Failed to load wiki images', e));
 </script>
 
 </body>
